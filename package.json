@@ -1,0 +1,155 @@
+{
+  "name": "NERV",
+  "author": "Mistyhands",
+  "version": "1.1.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "dependencies": {
+    "clay": "^2.22.3",
+    "pebble-clay": "^1.0.4"
+  },
+  "pebble": {
+    "displayName": "NERV",
+    "uuid": "11f0c46a-0945-4b2e-b7af-bc4ab533220f",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "basalt"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "capabilities": [
+      "location",
+      "configurable"
+    ],
+    "messageKeys": [
+      "TEMPERATURE",
+      "CONDITIONS",
+      "colourScheme",
+      "fahrenheit",
+      "hideDotw",
+      "japanese",
+      "hideTemp",
+      "customKey",
+      "customLoc",
+      "secret"
+    ],
+    "resources": {
+      "media": [
+        {
+          "menuIcon": true,
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/icon.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUNDTEST",
+          "file": "images/test.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_NO_BT",
+          "file": "images/no_bt.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DAY",
+          "file": "images/day.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_TEMPC",
+          "file": "images/tempc.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_TEMPF",
+          "file": "images/tempf.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ON",
+          "file": "images/on_light.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND1",
+          "file": "images/bg1.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND1_2",
+          "file": "images/bg1_2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND2",
+          "file": "images/bg2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND2_2",
+          "file": "images/bg2_2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND3",
+          "file": "images/bg3.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND3_2",
+          "file": "images/bg3_2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND4",
+          "file": "images/bg4.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND4_2",
+          "file": "images/bg4_2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BATBG",
+          "file": "images/bat0.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BATBAR",
+          "file": "images/bat_bar.png"
+        },
+        {
+          "characterRegex": "[曜日月火水木金土0-9 ]",
+          "type": "font",
+          "name": "NOTO_14",
+          "file": "fonts/noto.ttf"
+        },
+        {
+          "characterRegex": "[0-9]",
+          "type": "font",
+          "name": "DSEG_33",
+          "file": "fonts/dseg.ttf"
+        },
+        {
+          "characterRegex": "[.0-9]",
+          "type": "font",
+          "name": "DSEG_16",
+          "file": "fonts/dseg.ttf"
+        },
+        {
+          "characterRegex": "[FMSTWADEHINORTU]",
+          "type": "font",
+          "name": "HELV_15",
+          "file": "fonts/helvw.ttf",
+          "compatibility": "2.7"
+        }
+      ]
+    }
+  }
+}
