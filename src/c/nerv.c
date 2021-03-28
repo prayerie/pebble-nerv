@@ -33,6 +33,7 @@ static BitmapLayer *s_bat_bar1_layer, *s_bat_bar2_layer, *s_bat_bar3_layer, *s_b
 
 static int s_battery_level;
 static int s_last_battery_draw_pct = 100;
+
 typedef struct ClaySettings {
     bool fahrenheit;
     bool hideDotw;
@@ -42,6 +43,7 @@ typedef struct ClaySettings {
     char customLoc[32];
     char colourScheme[32];
     char secret[32];
+    char bwBgColor[32];
 } __attribute__((__packed__)) ClaySettings;
 
 static ClaySettings settings;
@@ -55,6 +57,7 @@ static void default_settings() {
     strcpy(settings.customLoc, "");
     strcpy(settings.colourScheme, "d");
     strcpy(settings.secret, "");
+    strcpy(settings.bwBgColor, "b");
 }
 
 static void save_settings() {
@@ -100,43 +103,53 @@ static void outbox_iter() {
 // }
 
 static GColor clock_colour() {
-    if (strcmp(settings.colourScheme, "d") == 0) {
-        return GColorChromeYellow;
-    } else if (strcmp(settings.colourScheme, "r") == 0) {
-        return GColorSunsetOrange;
-    } else if (strcmp(settings.colourScheme, "a") == 0) {
-        return GColorChromeYellow;
-    } else if (strcmp(settings.colourScheme, "m") == 0) {
-        return GColorRed;
-    } else {
-        return GColorChromeYellow;
-    }
+    // GColor colour_text;
+    // if (1 || strcmp(settings.colourScheme, "d") == 0) {
+    //     colour_text = GColorChromeYellow;
+    // } else if (strcmp(settings.colourScheme, "r") == 0) {
+    //     colour_text = GColorSunsetOrange;
+    // } else if (strcmp(settings.colourScheme, "a") == 0) {
+    //     colour_text = GColorChromeYellow;
+    // } else if (strcmp(settings.colourScheme, "m") == 0) {
+    //     colour_text = GColorRed;
+    // } else {
+    //     colour_text = GColorChromeYellow;
+    // }
+    return PBL_IF_COLOR_ELSE(GColorChromeYellow, GColorWhite);
 }
 
 static void update_colours() {
+
     gbitmap_destroy(s_background_bitmap);
     gbitmap_destroy(s_background_j_bitmap);
-    if (strcmp(settings.colourScheme, "d") == 0) {
-        s_background_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1);
-        s_background_j_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1_2);
-    } else if (strcmp(settings.colourScheme, "r") == 0) {
-        s_background_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND2);
-        s_background_j_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND2_2);
-    } else if (strcmp(settings.colourScheme, "a") == 0) {
-        s_background_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND3);
-        s_background_j_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND3_2);
-    } else if (strcmp(settings.colourScheme, "m") == 0) {
-        s_background_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND4);
-        s_background_j_bitmap =
-            gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND4_2);
-    }
+    if (strcmp(settings.bwBgColor, "w") == 0 && PBL_IF_BW_ELSE(1, 0))
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1_2);
+    else
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1);
+    bitmap_layer_set_bitmap(s_background_layer, s_background_bitmap);
+    printf("This code ran\n");
+
+    // if (strcmp(settings.colourScheme, "d") == 0) {
+    //     s_background_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1);
+    //     s_background_j_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1_2);
+    // } else if (strcmp(settings.colourScheme, "r") == 0) {
+    //     s_background_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND2);
+    //     s_background_j_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND2_2);
+    // } else if (strcmp(settings.colourScheme, "a") == 0) {
+    //     s_background_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND3);
+    //     s_background_j_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND3_2);
+    // } else if (strcmp(settings.colourScheme, "m") == 0) {
+    //     s_background_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND4);
+    //     s_background_j_bitmap =
+    //         gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND4_2);
+    // }
     text_layer_set_text_color(s_time_layer_r, clock_colour());
     text_layer_set_text_color(s_time_layer_l, clock_colour());
     text_layer_set_text_color(s_day_text_layer, clock_colour());
@@ -154,14 +167,25 @@ static void update_temp_format() {
     bitmap_layer_set_bitmap(s_temp_layer, s_temp_bitmap);
 }
 
-static void update_jp() {
-    if (!s_background_layer)
-        return;
-    if (settings.japanese) {
-        bitmap_layer_set_bitmap(s_background_layer, s_background_bitmap);
-    } else {
-        bitmap_layer_set_bitmap(s_background_layer, s_background_j_bitmap);
+static void update_date() {
+    time_t temp = time(NULL);
+    struct tm *tick_time = localtime(&temp);
+    static char dat_buffer[4];
+    static char date_buffer[16];
+#if defined(PBL_RECT)
+    strftime(date_buffer, sizeof(date_buffer), "%y    %m   %d", tick_time);
+#else
+    if (settings.fahrenheit)
+        strftime(date_buffer, sizeof(date_buffer), "%m/%d", tick_time);
+    else
+        strftime(date_buffer, sizeof(date_buffer), "%d/%m", tick_time);
+#endif
+    strftime(dat_buffer, sizeof(date_buffer), "%a", tick_time);
+    for (int i = 0; i < 4; i++) {
+        dat_buffer[i] = toupper((unsigned char)dat_buffer[i]);
     }
+    text_layer_set_text(s_day_text_layer, dat_buffer);
+    text_layer_set_text(s_dat_layer, date_buffer);
 }
 
 // 0 = off,
@@ -170,7 +194,7 @@ static void update_jp() {
 // 3 = PRECIP
 // 4 = ATMO
 static void set_indicator(int status) {
-    int x = 39, y = 114;
+    int x = PBL_IF_RECT_ELSE(39, 29), y = PBL_IF_RECT_ELSE(114, 119);
     layer_set_hidden(bitmap_layer_get_layer(s_on_layer), 1);
     switch (status) {
     case 0:
@@ -222,6 +246,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
         settings.fahrenheit = fahrenheit_t->value->int32 == 1;
         persist_write_data(SETTINGS_KEY, &settings, sizeof(settings));
         update_temp_format();
+        update_date();
         outbox_iter();
     }
 
@@ -230,6 +255,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
         settings.hideDotw = hideDotw_t->value->int32 == 1;
         save_settings();
         layer_set_hidden(bitmap_layer_get_layer(s_day_layer), settings.hideDotw);
+        layer_set_hidden(text_layer_get_layer(s_day_text_layer), settings.hideDotw);
     }
 
     Tuple *hideTemp_t = dict_find(iterator, MESSAGE_KEY_hideTemp);
@@ -257,7 +283,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
     Tuple *japanese_t = dict_find(iterator, MESSAGE_KEY_japanese);
     if (japanese_t) {
         settings.japanese = japanese_t->value->int32 == 1;
-        update_jp();
+        // update_jp();
         save_settings();
     }
 
@@ -276,6 +302,15 @@ static void inbox_received_callback(DictionaryIterator *iterator,
         // update_jp();
         save_settings();
         update_ht();
+    }
+
+    Tuple *bwBgColor_t = dict_find(iterator, MESSAGE_KEY_bwBgColor);
+    if (bwBgColor_t) {
+        strcpy(settings.bwBgColor, bwBgColor_t->value->cstring);
+        //
+        // update_jp();
+        save_settings();
+        update_colours();
     }
     if (temp_tuple && conditions_tuple) {
         double temp = (int)temp_tuple->value->int32 / 10;
@@ -310,7 +345,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
             weather_category = 4;
         } else if (strcmp(conditions_buffer, "Dus") == 0) {
             weather_category = 4;
-        }  else if (strcmp(conditions_buffer, "San") == 0) {
+        } else if (strcmp(conditions_buffer, "San") == 0) {
             weather_category = 4;
         } else if (strcmp(conditions_buffer, "Ash") == 0) {
             weather_category = 4;
@@ -318,7 +353,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
             weather_category = 4;
         } else if (strcmp(conditions_buffer, "Tor") == 0) {
             weather_category = 4;
-        } 
+        }
 
         set_indicator(weather_category);
     }
@@ -355,25 +390,12 @@ static void update_battery() {
         s_last_battery_draw_pct = s_battery_level;
     }
 }
-static void update_date() {
-    time_t temp = time(NULL);
-    struct tm *tick_time = localtime(&temp);
-    static char dat_buffer[4];
-    static char date_buffer[16];
-    strftime(date_buffer, sizeof(date_buffer), "%y    %m   %d", tick_time);
-    strftime(dat_buffer, sizeof(date_buffer), "%a", tick_time);
-    for (int i = 0; i < 4; i++) {
-        dat_buffer[i] = toupper((unsigned char)dat_buffer[i]);
-    }
-    text_layer_set_text(s_day_text_layer, dat_buffer);
-    text_layer_set_text(s_dat_layer, date_buffer);
-}
+
 static void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
-
     s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1);
-    s_background_j_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND1);
+
     s_background_layer = bitmap_layer_create(bounds);
     bitmap_layer_set_bitmap(s_background_layer, s_background_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_background_layer));
@@ -389,79 +411,79 @@ static void main_window_load(Window *window) {
     bitmap_layer_set_bitmap(s_on_layer, s_on_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_on_layer));
 
-    set_indicator(0);
+    set_indicator(2);
 
     if (settings.fahrenheit)
         s_temp_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_TEMPF);
     else
         s_temp_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_TEMPC);
     // s_temp_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_TEMPF);
-    s_temp_layer = bitmap_layer_create(GRect(97, 125, 47, 21));
+    s_temp_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(97, 105), PBL_IF_RECT_ELSE(125, 130), 48, 21));
     bitmap_layer_set_bitmap(s_temp_layer, s_temp_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_temp_layer));
 
     s_bat_bg_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATBG);
-    s_bat_bg_layer = bitmap_layer_create(GRect(0, 0, 17, 8));
+    s_bat_bg_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(0, 82), 0, 17, 8));
     bitmap_layer_set_bitmap(s_bat_bg_layer, s_bat_bg_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bat_bg_layer));
 
     s_bat_bar_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATBAR);
 
-    s_bat_bar1_layer = bitmap_layer_create(GRect(4, 1, 2, 5));
+    s_bat_bar1_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(4, 86), 1, 2, 5));
     bitmap_layer_set_bitmap(s_bat_bar1_layer, s_bat_bar_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bat_bar1_layer));
 
-    s_bat_bar2_layer = bitmap_layer_create(GRect(7, 1, 2, 5));
+    s_bat_bar2_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(7, 89), 1, 2, 5));
     bitmap_layer_set_bitmap(s_bat_bar2_layer, s_bat_bar_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bat_bar2_layer));
 
-    s_bat_bar3_layer = bitmap_layer_create(GRect(10, 1, 2, 5));
+    s_bat_bar3_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(10, 92), 1, 2, 5));
     bitmap_layer_set_bitmap(s_bat_bar3_layer, s_bat_bar_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bat_bar3_layer));
 
-    s_bat_bar4_layer = bitmap_layer_create(GRect(13, 1, 2, 5));
+    s_bat_bar4_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(13, 95), 1, 2, 5));
     bitmap_layer_set_bitmap(s_bat_bar4_layer, s_bat_bar_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bat_bar4_layer));
 
     s_day_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DAY);
-    s_day_layer = bitmap_layer_create(GRect(5, 13, 57, 27));
+    s_day_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(5, 35), 13, 57, 27));
     bitmap_layer_set_bitmap(s_day_layer, s_day_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_day_layer));
 
-    s_dat_layer = text_layer_create(GRect(48, 148, bounds.size.w, 50));
+    s_dat_layer = text_layer_create(GRect(PBL_IF_RECT_ELSE(48, 88), PBL_IF_RECT_ELSE(148, 153), bounds.size.w, 50));
     text_layer_set_background_color(s_dat_layer, GColorClear);
-    text_layer_set_text_color(s_dat_layer, GColorChromeYellow);
+    text_layer_set_text_color(s_dat_layer, clock_colour());
     text_layer_set_font(s_dat_layer, noto);
     text_layer_set_text_alignment(s_dat_layer, GTextAlignmentLeft);
     text_layer_set_text(s_dat_layer, "00     00    00");
     layer_add_child(window_layer, text_layer_get_layer(s_dat_layer));
 
-    s_day_text_layer = text_layer_create(GRect(-42, 13, bounds.size.w, 50));
+    s_day_text_layer = text_layer_create(GRect(PBL_IF_RECT_ELSE(-42, -30), 13, bounds.size.w, 50));
     text_layer_set_background_color(s_day_text_layer, GColorClear);
-    text_layer_set_text_color(s_day_text_layer, GColorChromeYellow);
+    text_layer_set_text_color(s_day_text_layer, clock_colour());
     text_layer_set_font(s_day_text_layer, helv);
     text_layer_set_text_alignment(s_day_text_layer, GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(s_day_text_layer));
     text_layer_set_text(s_day_text_layer, "DAY");
 
     s_bt_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_NO_BT);
-    s_bt_layer = bitmap_layer_create(GRect(13, 10, 57, 27));
+    s_bt_layer = bitmap_layer_create(GRect(PBL_IF_RECT_ELSE(13, 37), 10, 57, 27));
     bitmap_layer_set_bitmap(s_bt_layer, s_bt_bitmap);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bt_layer));
 
     // int time_x = 16;
     // if (strcmp(settings.colourScheme, "brown") == 0)
     //     time_x = 20;
-    s_time_layer_l = text_layer_create(GRect(35, 67, bounds.size.w, 50));
+    s_time_layer_l = text_layer_create(GRect(PBL_IF_RECT_ELSE(35, 55), PBL_IF_RECT_ELSE(67, 72), bounds.size.w, 50));
     text_layer_set_background_color(s_time_layer_l, GColorClear);
-    text_layer_set_text_color(s_time_layer_l, GColorChromeYellow);
+    text_layer_set_text_color(s_time_layer_l, clock_colour());
     text_layer_set_font(s_time_layer_l, seven_seg);
     text_layer_set_text_alignment(s_time_layer_l, GTextAlignmentLeft);
     layer_add_child(window_layer, text_layer_get_layer(s_time_layer_l));
 
-    s_time_layer_r = text_layer_create(GRect(90, 67, bounds.size.w, 50));
+    s_time_layer_r = text_layer_create(GRect(PBL_IF_RECT_ELSE(90, 110), PBL_IF_RECT_ELSE(67, 72), bounds.size.w, 50));
     text_layer_set_background_color(s_time_layer_r, GColorClear);
-    text_layer_set_text_color(s_time_layer_r, GColorChromeYellow);
+    text_layer_set_text_color(s_time_layer_r, clock_colour());
 
     text_layer_set_font(s_time_layer_r, seven_seg);
     text_layer_set_text_alignment(s_time_layer_r, GTextAlignmentLeft);
@@ -493,9 +515,9 @@ static void main_window_load(Window *window) {
     // text_layer_set_font(s_wea_layer, transport_med_small);
     // text_layer_set_text_alignment(s_wea_layer, GTextAlignmentCenter);
 
-    s_tem_layer = text_layer_create(GRect(-7, 128, bounds.size.w, 50));
+    s_tem_layer = text_layer_create(GRect(PBL_IF_RECT_ELSE(-7, -35), PBL_IF_RECT_ELSE(128, 133), bounds.size.w, 50));
     text_layer_set_background_color(s_tem_layer, GColorClear);
-    text_layer_set_text_color(s_tem_layer, GColorFolly);
+    text_layer_set_text_color(s_tem_layer, PBL_IF_COLOR_ELSE(GColorFolly, GColorWhite));
     text_layer_set_font(s_tem_layer, seven_seg_sml);
     text_layer_set_text_alignment(s_tem_layer, GTextAlignmentRight);
     layer_add_child(window_layer, text_layer_get_layer(s_tem_layer));
@@ -507,9 +529,9 @@ static void main_window_load(Window *window) {
     // layer_set_hidden(text_layer_get_layer(s_tem_layer), !settings.twoLineWeather);
     // layer_set_hidden(text_layer_get_layer(s_wea_tem_layer), settings.twoLineWeather);
     bluetooth_callback(connection_service_peek_pebble_app_connection());
-    // update_colours();
+    update_colours();
     update_battery();
-    update_jp();
+    // update_jp();
     update_temp_format();
     update_ht();
     update_date();
@@ -557,10 +579,7 @@ static void update_time() {
     strftime(s_buffer_r, sizeof(s_buffer_r), "%M", tick_time);
     text_layer_set_text(s_time_layer_r, s_buffer_r);
     text_layer_set_text(s_time_layer_l, s_buffer_l);
-    
 }
-
-
 
 static void battery_callback(BatteryChargeState state) {
     s_battery_level = state.charge_percent;

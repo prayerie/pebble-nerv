@@ -5,6 +5,7 @@ module.exports = [
     },
     {
       "type": "section",
+      "capabilities": ["COLOR"],
       "items": [
         {
           "type": "heading",
@@ -38,6 +39,32 @@ module.exports = [
     },
     {
       "type": "section",
+      "capabilities": ["BW"],
+      "items": [
+        {
+          "type": "heading",
+          "defaultValue": "Pebble 1/2 settings"
+        },
+        {
+          "type": "radiogroup",
+          "messageKey": "bwBgColor",
+          "label": "Background color",
+          "defaultValue": "b",
+          "options": [
+            { 
+              "label": "Black", 
+              "value": "b"
+            },
+            { 
+              "label": "White", 
+              "value": "w"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
       "items": [
         {
           "type": "heading",
@@ -57,6 +84,7 @@ module.exports = [
         },
         {
           "type": "toggle",
+          "capabilities": ["PLATFORM_EMERY"],
           "messageKey": "japanese",
           "label": "Set some UI to Japanese",
           "defaultValue": false
@@ -96,7 +124,7 @@ module.exports = [
           "type": "input",
           "messageKey": "secret",
           "defaultValue": "",
-          "label": "?",
+          "label": "test",
           "attributes": {
             "placeholder": "",
             "limit": 32,

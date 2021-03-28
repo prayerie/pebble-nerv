@@ -1,7 +1,7 @@
 {
   "name": "NERV",
   "author": "Mistyhands",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "keywords": [
     "pebble-app"
   ],
@@ -15,7 +15,10 @@
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "basalt"
+      "basalt",
+      "aplite",
+      "diorite",
+      "chalk"
     ],
     "watchapp": {
       "watchface": true
@@ -34,7 +37,8 @@
       "hideTemp",
       "customKey",
       "customLoc",
-      "secret"
+      "secret",
+      "bwBgColor"
     ],
     "resources": {
       "media": [
@@ -43,11 +47,6 @@
           "type": "png",
           "name": "IMAGE_MENU_ICON",
           "file": "images/icon.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_BACKGROUNDTEST",
-          "file": "images/test.png"
         },
         {
           "type": "bitmap",
@@ -86,36 +85,6 @@
         },
         {
           "type": "bitmap",
-          "name": "IMAGE_BACKGROUND2",
-          "file": "images/bg2.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_BACKGROUND2_2",
-          "file": "images/bg2_2.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_BACKGROUND3",
-          "file": "images/bg3.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_BACKGROUND3_2",
-          "file": "images/bg3_2.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_BACKGROUND4",
-          "file": "images/bg4.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_BACKGROUND4_2",
-          "file": "images/bg4_2.png"
-        },
-        {
-          "type": "bitmap",
           "name": "IMAGE_BATBG",
           "file": "images/bat0.png"
         },
@@ -125,7 +94,7 @@
           "file": "images/bat_bar.png"
         },
         {
-          "characterRegex": "[曜日月火水木金土0-9 ]",
+          "characterRegex": "[0-9/ ]",
           "type": "font",
           "name": "NOTO_14",
           "file": "fonts/noto.ttf"
@@ -137,7 +106,7 @@
           "file": "fonts/dseg.ttf"
         },
         {
-          "characterRegex": "[.0-9]",
+          "characterRegex": "[0-9]",
           "type": "font",
           "name": "DSEG_16",
           "file": "fonts/dseg.ttf"
